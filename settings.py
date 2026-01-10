@@ -15,3 +15,7 @@ LOGS_FORMAT = "%(asctime)s | %(levelname)-8s | %(module)-20s:%(lineno)-3d - %(me
 # Browser cdp settings
 BROWSER_CDP_HOST = "http://localhost"
 BROWSER_CDP_PORT = 9222
+
+# Proxy settings
+BASE_URL = "https://api.dancying.cn"
+API_PREFIX = "/legado"
