@@ -8,23 +8,32 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /novel
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources || \
+    (echo "deb https://mirrors.ustc.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+     echo "deb https://mirrors.ustc.edu.cn/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+     echo "deb https://mirrors.ustc.edu.cn/debian/ bookworm-backports main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+     echo "deb https://mirrors.ustc.edu.cn/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list) && \
+    apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
     xvfb \
-    fonts-wqy-zenhei \
-    && wget -q -O microsoft-edge-stable.deb https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/microsoft-edge-stable_131.0.2903.112-1_amd64.deb \
-    && dpkg -i microsoft-edge-stable.deb || apt-get install -f -y \
-    && rm microsoft-edge-stable.deb \
-    && apt-get purge -y --auto-remove wget \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN useradd -m -s /bin/bash novel && chown -R novel:novel /novel
+    xauth \
+    fonts-wqy-zenhei && \
+    wget -q -O microsoft-edge-stable.deb https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/microsoft-edge-stable_131.0.2903.112-1_amd64.deb && \
+    (dpkg -i microsoft-edge-stable.deb || apt-get install -f -y) && \
+    useradd -m -s /bin/bash novel && \
+    chown -R novel:novel /novel && \
+    rm microsoft-edge-stable.deb && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --chown=novel:novel requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.ustc.edu.cn/pypi/web/simple -r requirements.txt
 
 COPY --chown=novel:novel . .
+
+RUN sed -i "s|BASE_URL = .*|BASE_URL = \"${BASE_URL}\"|g" settings.py && \
+    sed -i "s|API_PREFIX = .*|API_PREFIX = \"${API_PREFIX}\"|g" settings.py
 
 USER novel
 

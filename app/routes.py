@@ -48,10 +48,12 @@ def legado_proxy():
 @legado_api.route("/BookSource.json", methods=["GET"])
 def legado_book_source():
     logger.info(f"Access from [{request.remote_addr}]: Returning BookSource.json")
-    return get_latest_source().replace("https://api.dancying.cn", settings.BASE_URL)
+    target_url = f"{settings.BASE_URL}{settings.API_PREFIX}"
+    return get_latest_source().replace("https://api.dancying.cn", target_url)
 
 
-@legado_api.errorhandler(404)
+@legado_api.app_errorhandler(404)
 def handle_404(e):
-    logger.warning(f"404 Not Found within API: [{request.remote_addr}] {request.path}")
-    return render_template("404.html", path=request.path), 404
+    if request.path.startswith(settings.API_PREFIX):
+        logger.warning(f"404 Not Found within API: [{request.remote_addr}] {request.path}")
+        return render_template("404.html", path=request.path), 404
