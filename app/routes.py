@@ -28,7 +28,8 @@ website_scraper_mapping = {
 
 @legado_api.route("/", methods=["GET"])
 def legado_api_index():
-    return redirect("https://git.dancying.cn/Dancying/NovelService/src/master/README.md", code=301)
+    source_url = f"{settings.BASE_URL}{settings.API_PREFIX}/BookSource.json"
+    return render_template("index.html", source_url=source_url)
 
 
 @legado_api.route(SEARCH_ROUTE, methods=["POST"])
