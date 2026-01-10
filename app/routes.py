@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask import redirect
 from flask import request
 
+import settings
 from core.logger_handler import get_logger
 from core.scrapers.fly_sky_scraper import FlySkyScraper
 from core.scrapers.shu_x_scraper import ShuXScraper
@@ -9,7 +10,7 @@ from core.scrapers.six_nine_scraper import SixNineScraper
 from core.scrapers.tw_kan_scraper import TwKanScraper
 from core.source_handler import get_latest_source
 
-legado_api = Blueprint("legado_api", __name__, url_prefix="/legado")
+legado_api = Blueprint("legado_api", __name__, url_prefix=settings.API_PREFIX, template_folder="templates")
 
 logger = get_logger()
 
@@ -47,4 +48,10 @@ def legado_proxy():
 @legado_api.route("/BookSource.json", methods=["GET"])
 def legado_book_source():
     logger.info(f"Access from [{request.remote_addr}]: Returning BookSource.json")
-    return get_latest_source()
+    return get_latest_source().replace("https://api.dancying.cn", settings.BASE_URL)
+
+
+@legado_api.errorhandler(404)
+def handle_404(e):
+    logger.warning(f"404 Not Found within API: [{request.remote_addr}] {request.path}")
+    return render_template("404.html", path=request.path), 404
